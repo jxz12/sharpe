@@ -4,32 +4,34 @@ import './App.css'
 function App() {
 
   const [w, set_w] = useState(0.5);
-  const [rx, set_rx] = useState(1); 
-  const [ry, set_ry] = useState(1); 
+  const [mx, set_rx] = useState(1); 
+  const [my, set_ry] = useState(3); 
   const [sx, set_sx] = useState(1); 
-  const [sy, set_sy] = useState(1); 
-  const [sxy, set_sxy] = useState(0.5);
+  const [sy, set_sy] = useState(2); 
+  const [cxy, set_cxy] = useState(-0.5);
 
   const variables = [
-    { name: `\\(w\\)`,       value: w,   setter: set_w,   default: 0.5 },
-    { name: `\\(r_x\\)`,     value: rx,  setter: set_rx,  default: 1   },
-    { name: `\\(r_y\\)`,     value: ry,  setter: set_ry,  default: 1   },
-    { name: `\\(s_x\\)`,     value: sx,  setter: set_sx,  default: 1   },
-    { name: `\\(s_y\\)`,     value: sy,  setter: set_sy,  default: 1   },
-    { name: `\\(s_{x,y}\\)`, value: sxy, setter: set_sxy, default: 0.5 },
+    { name: `\\(w\\)`,           value: w,   setter: set_w,   default: 0.5  },
+    { name: `\\(\\mu_x\\)`,      value: mx,  setter: set_rx,  default: 1    },
+    { name: `\\(\\mu_y\\)`,      value: my,  setter: set_ry,  default: 3    },
+    { name: `\\(\\sigma_x\\)`,   value: sx,  setter: set_sx,  default: 1    },
+    { name: `\\(\\sigma_y\\)`,   value: sy,  setter: set_sy,  default: 2    },
+    { name: `\\(\\rho_{x,y}\\)`, value: cxy, setter: set_cxy, default: -0.5 },
   ]
-  const r = w*rx + (1-w)*ry;
-  const s = w*w*sx*sx + (1-w)*(1-w)*sy*sy + 2*w*(1-w)*sxy;
+  const sxy = cxy*sx*sy;  // correlation
+  const m = w*mx + (1-w)*my;
+  const s = Math.sqrt(w*w*sx*sx + (1-w)*(1-w)*sy*sy + 2*w*(1-w)*sxy);
 
   useEffect(() => {
     if (typeof window?.MathJax !== "undefined"){
       window.MathJax.typesetClear()
       window.MathJax.typeset();
     }
-  }, [r, s]);
+  }, [sxy, m, s]);
 
-  const eq_mean = `$$r = wr_x + (1-w)r_y = ${r.toFixed(2)}$$`;
-  const eq_var = `$$s^2 = w^2s_x^2 + (1-w)^2s_y^2 + 2w(1-w)s_{x,y} = ${s.toFixed(2)}$$`;
+  const eq_corr = `$$\\sigma_{x,y} = \\rho_{x,y}\\sigma_x\\sigma_y = ${sxy.toFixed(2)}$$`
+  const eq_mean = `$$\\mu = w\\mu_x + (1-w)\\mu_y = ${m.toFixed(2)}$$`;
+  const eq_var = `$$\\sigma^2 = w^2\\sigma_x^2 + (1-w)^2\\sigma_y^2 + 2w(1-w)\\sigma_{x,y} = ${s.toFixed(2)}$$`;
 
   return (
     <>
@@ -43,10 +45,14 @@ function App() {
           /></div>
         ))
       }
+      <p>{eq_corr}</p>
       <p>{eq_mean}</p>
       <p>{eq_var}</p>
       <svg width='200' height='200'>
-        <circle cx={s*200} cy={r*100} r='5'/>
+        <circle cx={sx*50} cy={200-mx*50} r='5' fill='dodgerblue'/>
+        <circle cx={sy*50} cy={200-my*50} r='5' fill='darkorange'/>
+        <circle cx={s*50} cy={200-m*50} r='5' fill='white'/>
+        <rect width='200' height='200' fill='none' stroke='grey'/>
       </svg>
     </>
   )
